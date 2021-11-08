@@ -1,0 +1,19 @@
+Parameter,value,description
+tillfac_FT,3.036,tillage disturbance modifier tilled soil (FT)
+tillfac_RT,2.075,tillage disturbance modifier tilled soil (RT)
+wfacirri,0.775,wfac for irrigated field for growing season (e.g. April - September in the US)
+k10,18.5,decay rate under optimum condition for metabolic (k1)
+k20,4.9,decay rate under optimum condition for structural (k2)
+k30,7.4,decay rate under optimum condition for active (k3)
+k40,0.209,decay rate under optimum condition for slow (k4)
+k50,0.00689,decay rate under optimum condition for passive (k5)
+f1,0.378,stabilization efficiencies for metabolic decay products entering the active pool
+f2,0.368,stabilization efficiencies for structural decay products entering the active pool
+f3,0.455,stabilization efficiencies for structural decay products entering the slow pool
+f5,0.0855,stabilization efficiencies for active pool decay products entering the passive pool
+f6,0.0504,stabilization efficiencies for slow pool decay products entering the passive pool
+f7,0.42,stabilization efficiencies for slow pool decay products entering the active pool
+f8,0.45,stabilization efficiencies for passive pool decay products entering the active pool
+tmax,45,parameter to estimate temperature modifier on decomposition (tfac)
+topt,33.69,parameter to estimate temperature modifier on decomposition (tfac)
+plig,3,empirical parameter to modify k20
