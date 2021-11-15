@@ -59,7 +59,6 @@ IPCCTier2SOMmodel <- function
 	Isom2   <- init.slow
 	Isom3   <- init.passive
 
-
 	for(year in years){
 		site       <- SiteData$site[SiteData$year == year]
 	  cinput     <- SiteData$cinput[SiteData$year == year]
@@ -68,8 +67,17 @@ IPCCTier2SOMmodel <- function
 		L          <- SiteData$ligfrac[SiteData$year == year]    # lignin fraction of cinput
 		N          <- SiteData$nfrac[SiteData$year == year]      # nitrogen fraction of cinput
 		mtemp      <- as.numeric(wth$tavg[wth$year == year])
+
+
+
 		mappet     <- as.numeric(wth$mappet[wth$year == year])
+
+
+
 		IRRIG      <- as.numeric(wth$irrig[wth$year == year])
+
+
+		
 		if(length(mappet) != 12){
 			stop("Length of mappet must be 12. It is not 12", length(mappet))
 		}

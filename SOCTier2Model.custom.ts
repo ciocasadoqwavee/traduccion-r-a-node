@@ -59,31 +59,34 @@ async function IPCCTier2SOMmodel(
   const Isom2 = slow;
   const Isom3 = passive;
 
+  for(const year of years){
+    const site = SiteData.find((x) => x.year === year).site;
+    const cinput = SiteData.find((x) => x.year === year).cinput;
+    const TILL = SiteData.find((x) => x.year === year).till;
+    const sand = SiteData.find((x) => x.year === year).sand;
+    const L = SiteData.find((x) => x.year === year).ligfrac; // lignin fraction of cinput
+    const N = SiteData.find((x) => x.year === year).nfrac; // nitrogen fraction of cinput
+    const mtemp: number[] = wth.map((x) => {
+      if(x.year === year)
+        return Number(x.tavg);
+    });
+    let mappet: number[] = wth.map((x) => {
+      if(x.year === year)
+        return Number(x.mappet);
+    });
+    const IRRIG: number[] = wth.map((x) => {
+      if(x.year === year)
+        return Number(x.irrig);
+    });
+    if(mappet.length !== 12)
+      return console.log(`Length of mappet must be 12. It is not 12, ${mappet.length}`);
 
-  // SOMstocks <- NULL
-  // Isom1   <- init.active
-  // Isom2   <- init.slow
-  // Isom3   <- init.passive
+    if(mtemp.length !== 12)
+      return console.log(`Length of monthly average temperature must be 12. It is not 12, ${mtemp.length}`);
 
-  // for(year in years){
-  // 	site       <- SiteData$site[SiteData$year == year]
-  //   cinput     <- SiteData$cinput[SiteData$year == year]
-  // 	TILL       <- SiteData$till[SiteData$year == year]
-  // 	sand       <- SiteData$sand[SiteData$year == year]
-  // 	L          <- SiteData$ligfrac[SiteData$year == year]    # lignin fraction of cinput
-  // 	N          <- SiteData$nfrac[SiteData$year == year]      # nitrogen fraction of cinput
-  // 	mtemp      <- as.numeric(wth$tavg[wth$year == year])
-  // 	mappet     <- as.numeric(wth$mappet[wth$year == year])
-  // 	IRRIG      <- as.numeric(wth$irrig[wth$year == year])
-  // 	if(length(mappet) != 12){
-  // 		stop("Length of mappet must be 12. It is not 12", length(mappet))
-  // 	}
-  // 	if(length(mtemp) != 12){
-  // 		stop("Length of monthly average temperature must be 12. It is not 12", length(mtemp))
-  // 	}
-  // 	mappet <- ifelse(mappet > 1.25, 1.25, mappet)
-  // 	wfac <- (0.2129 + 0.9303 * (mappet) - 0.2413 * (mappet^2))
-  // 	wfac <- ifelse(wfac > 1, 1, ifelse(wfac<0, 0, wfac))
+    mappet = mappet.map((x) => x > 1.25 ? 1.25 : x);
+    let wfac = mappet.map((x) => 0.2129 + 0.9303 * x - 0.2413 * x*x);
+    wfac = wfac.map((x) => x > 1 ? 1 : x < 0 ? 0 : x);
   // 	if(any(IRRIG == 1)){
   // 		wfac[IRRIG == 1] <- wfac_irri
   // 	}
