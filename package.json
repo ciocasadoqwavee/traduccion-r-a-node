@@ -4,12 +4,19 @@
   "description": "",
   "main": "auxiliar.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node dist/SOCTier2Model.custom.js"
   },
   "author": "cio",
   "license": "ISC",
   "dependencies": {
     "csv-parse": "^4.16.3",
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "parse": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "tslint": "^6.1.3",
+    "typescript": "^4.5.2"
   }
 }
