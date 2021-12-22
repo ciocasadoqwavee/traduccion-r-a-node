@@ -44,20 +44,3 @@ export interface DataResult{
   TotSOC: number[]
   deltaSOC: number[]
 }
-
-export interface DataOutput {
-  site: number;
-  year: number;
-  dfac: number;
-  kA: number;
-  SS_active: number;
-  active: number;
-  kS: number;
-  SS_slow: number;
-  slow: number;
-  kP: number;
-  SS_passive: number;
-  passive: number;
-  TotSOC: number;
-  deltaSOC: number;
-}

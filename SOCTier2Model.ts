@@ -1,34 +1,32 @@
-import {
-  ParamData,
-  SiteData,
-  WthData,
-  InitData,
-  DataResult,
-  DataOutput,
-} from "./models";
+import { ParamData, SiteData, WthData, InitData, DataResult } from "./models";
 import {
   read,
   diff,
-  sort,
   sum,
   mean,
   fromJsonToCsv,
   fromArrayToObject,
+  hasAllConsecutiveNumbers,
+  getAmountOfMissingProps,
 } from "./utils";
 
+
+const PARAMS_OF_PARAMETER_FILE = 18;
 async function IPCCTier2SOMmodel(
   SiteDataFilePath: string = "./SiteDataFile_Villegas_NT.csv",
   WthFilePath: string = "./weather_Villegas.csv",
   ParameterFilePath: string = "./default_parameters_Villegas.csv",
   init: InitData
 ) {
+  // reading csv data
   const params: ParamData[] = await read.csv(ParameterFilePath);
-  const SiteData: SiteData[] = await read.csv(SiteDataFilePath);
+  const siteData: SiteData[] = await read.csv(SiteDataFilePath);
   const wth: WthData[] = await read.csv(WthFilePath);
 
-  const tillfac_FT: number = params[0].value; // tillage disturbance modifier tilled soil (Full Till)
-  const tillfac_RT: number = params[1].value; // tillage disturbance modifier tilled soil (Reduce Till)
-  const wfac_irri: number = params[2].value; // wfac for irrigated field during the irrigation period
+  // saving data parameters
+  const tillfacFT: number = params[0].value; // tillage disturbance modifier tilled soil (Full Till)
+  const tillfacRT: number = params[1].value; // tillage disturbance modifier tilled soil (Reduce Till)
+  const wfacIrri: number = params[2].value; // wfac for irrigated field during the irrigation period
   const k10: number = params[3].value; // decay rate under optimum conditions for metabolic litter pool
   const k20: number = params[4].value; // decay rate under optimum condition for structural litter pool
   const k30: number = params[5].value; // decay rate under optimum condition for active
@@ -45,16 +43,16 @@ async function IPCCTier2SOMmodel(
   const topt: number = params[16].value; // optimum temperature on decomposition
   const plig: number = params[17].value; // empirical parameter to modify k20
 
-  const years = sort(SiteData.map((x) => x.year));
-  const ydiff = diff(years);
-  const yflag = sum(ydiff.map((x) => x != 1));
+  const years = siteData.map((x) => x.year).sort();
 
-  if (yflag !== 0) {
+  // Check for Consecutive Year
+  if (!hasAllConsecutiveNumbers(years))
     return console.log(
       `consecutive year needed for site ${SiteDataFilePath}, and TreatmentID.`
     );
-  }
-  const cflag1: string[] = [
+
+  // check for columns headings of siteData
+  const siteDataColumnsNames: string[] = [
     "site",
     "year",
     "sand",
@@ -64,26 +62,33 @@ async function IPCCTier2SOMmodel(
     "irrig",
     "till",
   ];
-  const amountOfPropsMissing: number = cflag1.filter(
-    (property) => !SiteData[0].hasOwnProperty(property)
-  ).length;
-  if (amountOfPropsMissing > 1) {
-    return console.log("check your SiteData file format");
-  }
 
-  const wflag: boolean = years.every((x) => wth.some((y) => y.year === x));
-  if (!wflag)
+  if (
+    siteDataColumnsNames.filter(
+      (columnName) => !siteData[0].hasOwnProperty(columnName)
+    ).length > 1
+  )
+    return console.log("check your SiteData file format");
+
+  // Check completeness in weather data
+  // check for years
+  if (!years.every((x) => wth.some((y) => y.year === x)))
     return console.log(
       "wth file must have all the data associated with years in SiteData"
     );
 
-  const cflag2: string[] = ["year", "month", "tavg", "mappet"];
-  if (!cflag2.every((property) => wth[0].hasOwnProperty(property))) {
+  // check for columns headings of wth
+  const wthColumnsNames: string[] = ["year", "month", "tavg", "mappet"];
+  if (
+    wthColumnsNames.filter((columnName) => !wth[0].hasOwnProperty(columnName))
+      .length > 1
+  )
     return console.log("check your wth file format.");
-  }
-  if (Object.keys(params).length !== 18) {
-    return console.log("there must be 18 parameters.");
-  }
+
+  // Check for parameter length
+  if (Object.keys(params).length !== PARAMS_OF_PARAMETER_FILE)
+    return console.log(`there must be ${PARAMS_OF_PARAMETER_FILE} parameters.`);
+
   let SOMstocks = null;
   let Isom1: number = init.active;
   let Isom2: number = init.slow;
@@ -105,12 +110,12 @@ async function IPCCTier2SOMmodel(
     deltaSOC: [],
   };
   for (const year of years) {
-    const site: number = SiteData.find((x) => x.year === year).site;
-    const cinput: number = SiteData.find((x) => x.year === year).cinput;
-    const TILL: string = SiteData.find((x) => x.year === year).till;
-    const sand: number = SiteData.find((x) => x.year === year).sand;
-    const L: number = SiteData.find((x) => x.year === year).ligfrac; // lignin fraction of cinput
-    const N: number = SiteData.find((x) => x.year === year).nfrac; // nitrogen fraction of cinput
+    const site: number = siteData.find((x) => x.year === year).site;
+    const cinput: number = siteData.find((x) => x.year === year).cinput;
+    const TILL: string = siteData.find((x) => x.year === year).till;
+    const sand: number = siteData.find((x) => x.year === year).sand;
+    const L: number = siteData.find((x) => x.year === year).ligfrac; // lignin fraction of cinput
+    const N: number = siteData.find((x) => x.year === year).nfrac; // nitrogen fraction of cinput
     const mtemp: number[] = wth
       .filter((x) => x.year === year)
       .map((x) => x.tavg);
@@ -224,11 +229,11 @@ const realDataPath = "./realDataPath.csv";
 const newDataPath = "./newDataPath.csv";
 
 async function calculateError(realDataPath: string, newDataPath: string) {
-  const realData: DataOutput[] = await read.csv(realDataPath);
-  const newData: DataOutput[] = await read.csv(newDataPath);
+  const realData: DataResult[] = await read.csv(realDataPath);
+  const newData: DataResult[] = await read.csv(newDataPath);
   let sum: number = 0;
   let counter: number = 0;
-  const error: DataOutput[] = [];
+  const error: DataResult[] = [];
   for (let i = 0; i < realData.length; i++) {
     let data: any = {};
     for (const [key, value] of Object.entries(realData[i])) {
@@ -243,7 +248,7 @@ async function calculateError(realDataPath: string, newDataPath: string) {
   console.log(averageError);
 
   // console.log(error);
- fromJsonToCsv(fromArrayToObject(error), "error.csv");
+  fromJsonToCsv(fromArrayToObject(error), "error.csv");
 }
 
 calculateError(realDataPath, newDataPath);
